@@ -105,8 +105,13 @@ var SampleApp = function() {
         };
 
         self.routes['/v2/test'] = function(req, res) {
-            res.setHeader('Content-Type', 'text/plain');
-            res.send("ok");
+            res.setHeader('Content-Type', 'application/json');
+            response = {
+                domain: 'my-arduino-node-js',
+                author: 'keith.io',
+                result: 'ping success'
+            };
+            res.end(JSON.stringify(response));
         };
 
         self.routes['/v1/track'] = function (req, res) {
