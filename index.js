@@ -109,6 +109,7 @@ var SampleApp = function() {
             response = {
                 domain: 'my-arduino-node-js',
                 author: 'keith.io',
+                cellphone: req.query.cellphone,
                 result: 'ping success'
             };
             res.end(JSON.stringify(response));
