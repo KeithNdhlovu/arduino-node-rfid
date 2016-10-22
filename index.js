@@ -2,6 +2,7 @@
 var express     = require('express');
 var fs          = require('fs');
 var firebase    = require('firebase');
+var Promise     = require('promise');
 
 
 /**
@@ -115,30 +116,30 @@ var SampleApp = function() {
             res.end(JSON.stringify(response));
         };
 
-        self.routes['/v1/track'] = function (req, res) {
+        self.routes['/v2/access'] = function(req, res) {
+            res.setHeader('Content-Type', 'application/json');
 
-            if (typeof req.query.longitude === "undefined" || 
-               typeof req.query.latitude  === "undefined" ||
-               typeof req.query.cellphone === "undefined") {
-                
+            if (typeof req.query.cellphone === "undefined") {
                 response = {
-                    result: 'fail'
+                    result: 'error'
                 };
                 res.end(JSON.stringify(response));
                 return;
             }
-           
-            // Prepare output in JSON format
+            
             response = {
-               latitude:req.query.latitude,
-               longitude:req.query.longitude,
-               cellphone:req.query.cellphone
+                cellphone: "+"+req.query.cellphone.trim()
             };
 
-
-            self.addNewLocation(response);
-            res.end('ok');
+            self.checkUserAccess(response).then(function(success){
+                res.end(JSON.stringify(success));
+                return;
+            }, function(err){
+                res.end(JSON.stringify(err));
+                return;
+            });
         };
+
     };
 
 
@@ -162,50 +163,67 @@ var SampleApp = function() {
      */
     self.initializeFirebase = function() {
         firebase.initializeApp({
-          databaseURL: 'https://arduino-item-locator.firebaseio.com',
+          databaseURL: 'https://arduino-gprs.firebaseio.com/',
           serviceAccount: 'firebase-details.json'
         });
     }
 
     /**
-     * 
+     *  Check if a user request is allowed, by checking the user access list of a device
      */
-    self.addNewLocation = function(response) {
-  
-        var ref = firebase.database().ref('/users');
-        var escape = false;
-        //check which device is linked to cellphone
-        var query = ref.orderByKey();
-        query.once("value")
-          .then(function(snapshot) {
-            snapshot.forEach(function(childSnapshot) {
-                var userKey = childSnapshot.key;
-                var userData = childSnapshot.val();
-                var deviceData = childSnapshot.child("device");
-                
+    self.checkUserAccess = function(response) {
+        return new Promise(function(resolve, reject){
+            var ref = firebase.database().ref('/users');
+            var found = false;
+            var hasLogged = false;
 
-                deviceData.forEach(function(deviceChildSnapshot) {
-                    var device = deviceChildSnapshot.val();
-                    var deviceKey = deviceChildSnapshot.key;
-                    if(device.cellphone === response.cellphone) {
-                        //Save the new location data
-                        var locationsRef = firebase.database().ref('/users/'+ userKey +'/device/'+ deviceKey +'/locations');
-                        var locationRef = locationsRef.push();
+            var query = ref.orderByKey();
+            query.once("value")
+                .then(function(snapshot) {
+                    snapshot.forEach(function(childSnapshot) {
+                        if(!found) {
+                            // Get the user object
+                            var userKey = childSnapshot.key;
+                            var userData = childSnapshot.val();
 
-                        //Add a listener to catch error messages and success messages
-                        locationsRef.on('child_added', function(dataSnapshot) {
-                          console.log('New Location data added');
-                        }, function(error) {
-                          console.log('Failed to add "child_added" listener /locations node:', error);
-                        });
-                        escape = true;
-                        //cancel further iterations
-                        return escape;
-                    }
-                });
+                            // Get the device for this user
+                            var deviceData = childSnapshot.child("device");
 
-                return escape;
-          });
+                            // Check the devices' access list for a user cellphone
+                            deviceData.forEach(function(deviceChildSnapshot) {
+                                var device = deviceChildSnapshot.val();
+                                var deviceKey = deviceChildSnapshot.key;
+                                
+                                // Loop trough the 
+                                var accessData = deviceChildSnapshot.child("access");
+
+                                accessData.forEach(function(accessChildSnapshot) {
+                                    var access = accessChildSnapshot.val();
+                                    if(access.cellphone === response.cellphone) {
+                                        //Grant access since they were added
+                                        found = true;
+                                        console.log('User is in access list');
+                                        //Create a new access log
+                                        var logsRef = firebase.database().ref('/users/'+ userKey +'/device/'+ deviceKey +'/logs');
+                                        var logRef = logsRef.push();
+
+                                        logRef.update({ 
+                                            user: userData.displayName, 
+                                            cellphone: access.cellphone,
+                                            createdAt: firebase.database.ServerValue.TIMESTAMP
+                                        });
+
+                                        //cancel further iterations
+                                        resolve({result:'ok'});
+                                        return found;
+                                    }
+                                });
+                            });
+                        }
+                    
+                        if(!found) resolve({result:'fail'});
+                    });
+            });
         });
     }
 
