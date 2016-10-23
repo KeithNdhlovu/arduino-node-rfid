@@ -213,6 +213,12 @@ var SampleApp = function() {
                                             createdAt: firebase.database.ServerValue.TIMESTAMP
                                         });
 
+                                        //Update the status of the door
+                                        var deviceRef = firebase.database().ref('/users/'+ userKey +'/device/'+ deviceKey);
+                                        deviceRef.update({
+                                            opened: true,
+                                            lastOpenTime: firebase.database.ServerValue.TIMESTAMP
+                                        });
                                         //cancel further iterations
                                         resolve({result:'ok'});
                                         return found;
