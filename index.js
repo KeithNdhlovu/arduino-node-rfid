@@ -207,8 +207,9 @@ var SampleApp = function() {
                                         var logsRef = firebase.database().ref('/users/'+ userKey +'/device/'+ deviceKey +'/logs');
                                         var logRef = logsRef.push();
 
+                                        console.log(access.fullname);
                                         logRef.update({ 
-                                            user: accessData.fullname, 
+                                            user: access.fullname, 
                                             cellphone: access.cellphone,
                                             createdAt: firebase.database.ServerValue.TIMESTAMP
                                         });
