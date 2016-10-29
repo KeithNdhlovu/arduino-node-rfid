@@ -207,9 +207,8 @@ var SampleApp = function() {
                                         var logsRef = firebase.database().ref('/users/'+ userKey +'/device/'+ deviceKey +'/logs');
                                         var logRef = logsRef.push();
 
-                                        console.log(access.fullname);
                                         logRef.update({ 
-                                            user: access.fullname, 
+                                            user: userData.displayName, 
                                             cellphone: access.cellphone,
                                             createdAt: firebase.database.ServerValue.TIMESTAMP
                                         });
@@ -227,9 +226,9 @@ var SampleApp = function() {
                                 });
                             });
                         }
-                    
-                        if(!found) resolve({result:'fail'});
                     });
+
+                    if(!found) resolve({result:'fail'});
             });
         });
     }
