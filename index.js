@@ -208,7 +208,7 @@ var SampleApp = function() {
                                         var logRef = logsRef.push();
 
                                         logRef.update({ 
-                                            user: userData.displayName, 
+                                            user: accessData.fullname, 
                                             cellphone: access.cellphone,
                                             createdAt: firebase.database.ServerValue.TIMESTAMP
                                         });
