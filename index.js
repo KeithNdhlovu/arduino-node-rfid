@@ -9,12 +9,14 @@ var io          = require('socket.io');
 
 var serveStatic = require('serve-static');
 
+var usbDetect   = require('usb-detection');
+
 // serial port initialization:
 var serialport = require('serialport'),			// include the serialport library
 	SerialPort  = serialport.SerialPort,			// make a local instance of serial
-	portName = '/dev/cu.usbmodem1421',								// get the port name from the command line
 	portConfig = {
 		baudRate: 9600,
+        autoOpen: false,
 		// call myPort.on('data') when a newline is received:
 		parser: serialport.parsers.readline('\n')
 	};
@@ -78,7 +80,7 @@ var SampleApp = function() {
      */
     self.terminator = function(sig){
         if (typeof sig === "string") {
-           console.log('%s: Received %s - terminating sample app ...',
+           console.log('%s: Received %s - terminating NodeJS app ...',
                        Date(Date.now()), sig);
            process.exit(1);
         }
@@ -157,7 +159,7 @@ var SampleApp = function() {
 
     };
 
-
+    
     /**
      *  Initialize the server (express) and create the routes and register
      *  the handlers.
@@ -283,12 +285,49 @@ var SampleApp = function() {
     }
 
     /**
+     * Go through the list of serial ports on the computer, then choose one where the manufacturer is Arduino
+     *  
+     */
+    self.getArduinoPortFromList = function () {
+        return new Promise(function(resolve, reject){
+            serialport.list(function (err, ports) {
+                
+                if(errr) return reject(err);
+                
+                var portName = null;
+                ports.forEach(function(port) {
+                    if(port.manufacturer.indexOf("Arduino") != -1) {
+                        portName = port.comName; 
+                        return;
+                    }
+                });
+
+                return resolve(portName);
+            });
+        });
+    };
+    /**
      * Open serial port to read incoming data from RFID Reader
      *  
      */
     self.accesSerialPort = function () {
-        // Open up serial com port
-        self.myPort = new SerialPort(portName, portConfig); // open the serial port:        
+        self.getArduinoPortFromList().then(function(portName){
+            if(portName == null)
+                return console.log("Please check that you have connected your Arduino Board via USB");
+                // Open up serial com port
+                self.myPort = new SerialPort(portName, portConfig); // open the serial port:
+                self.initSerialListeners();
+        }, function(err){
+            console.log(err);
+            return;
+        });
+    }
+
+    /**
+     * Initialise serialport listeners
+     * 
+     */
+    self.initSerialListeners = function() {
         self.myPort.on('open', openPort);		// called when the serial port opens
         self.myPort.on('close', closePort);		// called when the serial port closes
         self.myPort.on('error', serialError);	// called when there's an error with the serial port
@@ -310,8 +349,23 @@ var SampleApp = function() {
 
         function listen(data) {
             self.io.emit('update', data);
-        }
+        }        
     }
+
+    /**
+     *  Detect USB Input device getting connected
+     ***/
+    self.detectUsbDevices = function() {
+        // On Connect of the usb cable, reconnect the Boards' SerialPort
+        usbDetect.on('add', function(device) {
+            self.accesSerialPort();
+        });
+
+        // On Remove of the usb cable, stop the Boards' SerialPort
+        usbDetect.on('remove', function(device) {
+            console.log(device);
+        });        
+    };
 
     /**
      *  Initializes the sample application.
@@ -320,7 +374,7 @@ var SampleApp = function() {
         self.setupVariables();
         self.populateCache();
         self.setupTerminationHandlers();
-
+        self.detectUsbDevices();
         // Create the express server and routes.
         self.initializeServer();
     };

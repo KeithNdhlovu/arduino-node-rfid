@@ -15,8 +15,9 @@
     "firebase": "^3.0.0",
     "promise": "^7.1.1",
     "serialport": "~4.0.6",
+    "serve-static": "^1.11.0",
     "socket.io": "~0.9.16",
-    "serve-static": "^1.11.0"
+    "usb-detection": "^1.4.0"
   },
   "repository": {
     "type": "git",
