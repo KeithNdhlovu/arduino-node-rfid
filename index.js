@@ -4,6 +4,23 @@ var fs          = require('fs');
 var firebase    = require('firebase');
 var Promise     = require('promise');
 
+var Server      = require('http');
+var io          = require('socket.io');
+
+var serveStatic = require('serve-static');
+
+// serial port initialization:
+var serialport = require('serialport'),			// include the serialport library
+	SerialPort  = serialport.SerialPort,			// make a local instance of serial
+	portName = '/dev/cu.usbmodem1421',								// get the port name from the command line
+	portConfig = {
+		baudRate: 9600,
+		// call myPort.on('data') when a newline is received:
+		parser: serialport.parsers.readline('\n')
+	};
+
+// Empty value to send when a user connects to the socket
+var sendData = "";
 
 /**
  *  Define the sample application.
@@ -95,31 +112,29 @@ var SampleApp = function() {
     self.createRoutes = function() {
         self.routes = { };
 
-        self.routes['/asciimo'] = function(req, res) {
-            var link = "http://i.imgur.com/kmbjB.png";
-            res.send("<html><body><img src='" + link + "'></body></html>");
-        };
-
-        self.routes['/'] = function(req, res) {
-            res.setHeader('Content-Type', 'text/html');
-            res.send(self.cache_get('index.html') );
-        };
-
         self.routes['/v2/test'] = function(req, res) {
             res.setHeader('Content-Type', 'application/json');
             response = {
                 domain: 'my-arduino-node-js',
                 author: 'keith.io',
-                cellphone: req.query.cellphone,
+                tagID: req.query.tagID,
                 result: 'ping success'
             };
             res.end(JSON.stringify(response));
         };
 
+        self.routes['/v2/read-card'] = function(req, res) {    
+            res.setHeader('Content-Type', 'application/json');
+            response = {
+                result: 'hey'
+            };
+            res.end(JSON.stringify(response));
+        };        
+
         self.routes['/v2/access'] = function(req, res) {
             res.setHeader('Content-Type', 'application/json');
 
-            if (typeof req.query.cellphone === "undefined") {
+            if (typeof req.query.tagID === "undefined") {
                 response = {
                     result: 'error'
                 };
@@ -128,7 +143,7 @@ var SampleApp = function() {
             }
             
             response = {
-                cellphone: "+"+req.query.cellphone.trim()
+                tagID: req.query.tagID.trim()
             };
 
             self.checkUserAccess(response).then(function(success){
@@ -150,13 +165,47 @@ var SampleApp = function() {
     self.initializeServer = function() {
         self.initializeFirebase();
         self.createRoutes();
-        self.app = express();
+        self.app    = express();
+
+        self.accesSerialPort();
+        self.initSocketIO();
+        
+        //Application settings
+        self.app.set('views', './views');
+        self.app.set('view engine', 'ejs');
+        
+        self.app.get('/', function (req, res) {
+            res.render('pages/index');
+        });
+
+        //After Services
+        self.app.use(serveStatic('public'));
 
         //  Add handlers for the app (from the routes).
         for (var r in self.routes) {
             self.app.get(r, self.routes[r]);
         }
     };
+    
+    /**
+     * 
+     * Initialize socket IO
+     */
+    self.initSocketIO = function() {
+        
+        self.server = Server.createServer(self.app);
+        self.io = io.listen(self.server);
+
+        self.io.on('connection', function (socket) {
+            console.log("user connected");
+            
+            socket.emit('onconnection', {cardID:sendData});
+
+            self.io.on('update', function(data) {
+                socket.emit('readCard',{cardID:data});
+            });
+        });
+    }
 
     /**
      *  Initialize firebase
@@ -234,6 +283,37 @@ var SampleApp = function() {
     }
 
     /**
+     * Open serial port to read incoming data from RFID Reader
+     *  
+     */
+    self.accesSerialPort = function () {
+        // Open up serial com port
+        self.myPort = new SerialPort(portName, portConfig); // open the serial port:        
+        self.myPort.on('open', openPort);		// called when the serial port opens
+        self.myPort.on('close', closePort);		// called when the serial port closes
+        self.myPort.on('error', serialError);	// called when there's an error with the serial port
+        self.myPort.on('data', listen);			// called when there's new incoming serial data
+
+        function openPort() {
+            console.log('port open');
+            console.log('baud rate: ' + self.myPort.options.baudRate);
+        }
+
+        function closePort() {
+            console.log('port closed');
+        }
+
+        function serialError(error) {
+            console.log('there was an error with the serial port: ' + error);
+            self.myPort.close();
+        }
+
+        function listen(data) {
+            self.io.emit('update', data);
+        }
+    }
+
+    /**
      *  Initializes the sample application.
      */
     self.initialize = function() {
@@ -251,7 +331,7 @@ var SampleApp = function() {
      */
     self.start = function() {
         //  Start the app on the specific interface (and port).
-        self.app.listen(self.port, function() {
+        self.server.listen(self.port, function() {
             console.log('%s: Node server started on %s:%d ...',
                         Date(Date.now() ), self.ipaddress, self.port);
         });

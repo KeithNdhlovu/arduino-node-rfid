@@ -61,6 +61,30 @@
   </div>
 </div>
 
+<script src="/socket.io/socket.io.js"></script>
+<script>
+	var iosocket;
 
+	function initSocketIO() {
+		iosocket = io.connect();
+		iosocket.on('onconnection', function(value) {
+			console.log("Arduino Connected: "+value);
+			console.log(value);		
+			// recieve changed values by other client from server
+			iosocket.on('readCard', function (recievedData) {
+				console.log("Arduino Data: ");
+				console.log(recievedData);
+			});
+	    });
+	}
+	  
+	window.onload = function() {
+		initSocketIO();
+	};
+  
+	$(document).ready(function() {
+		// iosocket.emit('buttonval',toggleVal);
+	});
+</script>
 </body>
 </html>
