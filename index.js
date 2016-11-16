@@ -9,16 +9,16 @@ var io          = require('socket.io');
 
 var serveStatic = require('serve-static');
 
-var usbDetect   = require('usb-detection');
+// var usbDetect   = require('usb-detection');
+var usb         = require('usb')
 
 // serial port initialization:
-var serialport = require('serialport'),			// include the serialport library
-	SerialPort  = serialport.SerialPort,			// make a local instance of serial
+var SerialPort = require('serialport'),			// include the serialport library
 	portConfig = {
 		baudRate: 9600,
         autoOpen: false,
 		// call myPort.on('data') when a newline is received:
-		parser: serialport.parsers.readline('\n')
+		parser: SerialPort.parsers.readline('\n')
 	};
 
 // Empty value to send when a user connects to the socket
@@ -290,16 +290,17 @@ var SampleApp = function() {
      */
     self.getArduinoPortFromList = function () {
         return new Promise(function(resolve, reject){
-            serialport.list(function (err, ports) {
+            SerialPort.list(function (err, ports) {
                 
-                if(errr) return reject(err);
+                if(err) return reject(err);
                 
                 var portName = null;
-                ports.forEach(function(port) {
-                    if(port.manufacturer.indexOf("Arduino") != -1) {
-                        portName = port.comName; 
+                ports.forEach(function(usbPort) {
+                    if((typeof usbPort.manufacturer != 'undefined' || usbPort.manufacturer != null) && usbPort.manufacturer.indexOf("Arduino") != -1) {
+                        portName = usbPort.comName; 
                         return;
                     }
+                    console.log(usbPort)
                 });
 
                 return resolve(portName);
@@ -315,7 +316,7 @@ var SampleApp = function() {
             if(portName == null)
                 return console.log("Please check that you have connected your Arduino Board via USB");
                 // Open up serial com port
-                self.myPort = new SerialPort(portName, portConfig); // open the serial port:
+                self.myPort = new SerialPort(portName, { autoOpen: false });
                 self.initSerialListeners();
         }, function(err){
             console.log(err);
@@ -328,6 +329,12 @@ var SampleApp = function() {
      * 
      */
     self.initSerialListeners = function() {
+        self.myPort.open(function (err) {
+            if (err) {
+                return console.log('Error opening port: ', err.message);
+            }
+        });
+
         self.myPort.on('open', openPort);		// called when the serial port opens
         self.myPort.on('close', closePort);		// called when the serial port closes
         self.myPort.on('error', serialError);	// called when there's an error with the serial port
@@ -357,14 +364,17 @@ var SampleApp = function() {
      ***/
     self.detectUsbDevices = function() {
         // On Connect of the usb cable, reconnect the Boards' SerialPort
-        usbDetect.on('add', function(device) {
-            self.accesSerialPort();
-        });
+        // usbDetect.on('add', function(device) {
+        //     self.accesSerialPort();
+        // });
 
-        // On Remove of the usb cable, stop the Boards' SerialPort
-        usbDetect.on('remove', function(device) {
-            console.log(device);
-        });        
+        // // On Remove of the usb cable, stop the Boards' SerialPort
+        // usbDetect.on('remove', function(device) {
+        //     console.log(device);
+        // });  
+        usb.on('attach', function(device) {
+            self.accesSerialPort();
+        });      
     };
 
     /**
