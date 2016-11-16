@@ -8,13 +8,16 @@ var Server      = require('http');
 var io          = require('socket.io');
 
 var serveStatic = require('serve-static');
-
-// var usbDetect   = require('usb-detection');
-var usb         = require('usb')
+var five        = require("johnny-five");
 
 // serial port initialization:
-var SerialPort = require('serialport'),			// include the serialport library
-	portConfig = {
+var SerialPort;
+if (parseFloat(process.versions.nw) >= 0.13) {
+    SerialPort = require("browser-serialport");
+} else {
+    SerialPort = require("serialport");
+}
+var	portConfig = {
 		baudRate: 9600,
         autoOpen: false,
 		// call myPort.on('data') when a newline is received:
@@ -363,18 +366,20 @@ var SampleApp = function() {
      *  Detect USB Input device getting connected
      ***/
     self.detectUsbDevices = function() {
-        // On Connect of the usb cable, reconnect the Boards' SerialPort
-        // usbDetect.on('add', function(device) {
-        //     self.accesSerialPort();
-        // });
+        try {
+            var board = new five.Board();
+            board.on("connect", function(msg) {
+                console.log("Board Connected : "+msg);
+            });
 
-        // // On Remove of the usb cable, stop the Boards' SerialPort
-        // usbDetect.on('remove', function(device) {
-        //     console.log(device);
-        // });  
-        usb.on('attach', function(device) {
-            self.accesSerialPort();
-        });      
+            board.on("error", function(err) {
+                console.log("An Error ocured from board : "+err);
+            });
+        }
+        catch(err) {
+            console.log(err.message);
+        }
+
     };
 
     /**
