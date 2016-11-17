@@ -8,15 +8,11 @@ var Server      = require('http');
 var io          = require('socket.io');
 
 var serveStatic = require('serve-static');
-var five        = require("johnny-five");
+var usbDetect   = require('usb-detection');
+
 
 // serial port initialization:
-var SerialPort;
-if (parseFloat(process.versions.nw) >= 0.13) {
-    SerialPort = require("browser-serialport");
-} else {
-    SerialPort = require("serialport");
-}
+var SerialPort = require("serialport");
 var	portConfig = {
 		baudRate: 9600,
         autoOpen: false,
@@ -180,6 +176,11 @@ var SampleApp = function() {
         self.app.set('view engine', 'ejs');
         
         self.app.get('/', function (req, res) {
+            res.render('pages/index');
+        });
+
+        self.app.post('/save-user', function (req, res) {
+            console.log(request.body);
             res.render('pages/index');
         });
 
@@ -366,20 +367,9 @@ var SampleApp = function() {
      *  Detect USB Input device getting connected
      ***/
     self.detectUsbDevices = function() {
-        try {
-            var board = new five.Board();
-            board.on("connect", function(msg) {
-                console.log("Board Connected : "+msg);
-            });
-
-            board.on("error", function(err) {
-                console.log("An Error ocured from board : "+err);
-            });
-        }
-        catch(err) {
-            console.log(err.message);
-        }
-
+        usbDetect.on('change', function(device) { 
+            self.accesSerialPort();
+        });
     };
 
     /**
