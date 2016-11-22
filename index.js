@@ -4,9 +4,6 @@ var fs          = require('fs');
 var firebase    = require('firebase');
 var Promise     = require('promise');
 
-var Server      = require('http');
-var io          = require('socket.io');
-
 var serveStatic = require('serve-static');
 
 /**
@@ -225,7 +222,7 @@ var SampleApp = function() {
      */
     self.start = function() {
         //  Start the app on the specific interface (and port).
-        self.server.listen(self.port, function() {
+        self.app.listen(self.port, function() {
             console.log('%s: Node server started on %s:%d ...',
                         Date(Date.now() ), self.ipaddress, self.port);
         });
