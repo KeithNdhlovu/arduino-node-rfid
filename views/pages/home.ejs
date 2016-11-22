@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en" style="width: 100%" ng-app="rfidCardsApp" ng-controller="RfidCardsController">
+
+<!--================================================================================
+	Item Name: Materialize - Material Design Admin Template
+	Version: 3.1
+	Author: GeeksLabs
+	Author URL: http://www.themeforest.net/user/geekslabs
+================================================================================ -->
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="msapplication-tap-highlight" content="no">
+  <meta name="description" content="Materialize is a Material Design Admin Template,It's modern, responsive and based on Material Design by Google. ">
+  <meta name="keywords" content="materialize, admin template, dashboard template, flat admin template, responsive admin template,">
+  <title>Proximity Card System</title>
+
+  <!-- Favicons-->
+  <link rel="icon" href="images/favicon/favicon-32x32.png" sizes="32x32">
+  <!-- Favicons-->
+  <link rel="apple-touch-icon-precomposed" href="images/favicon/apple-touch-icon-152x152.png">
+  <!-- For iPhone -->
+  <meta name="msapplication-TileColor" content="#00bcd4">
+  <meta name="msapplication-TileImage" content="images/favicon/mstile-144x144.png">
+  <!-- For Windows Phone -->
+
+
+  <!-- CORE CSS-->
+  
+  <link href="css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection">
+  <link href="css/style.css" type="text/css" rel="stylesheet" media="screen,projection">
+    <!-- Custome CSS-->    
+    <link href="css/custom/custom.css" type="text/css" rel="stylesheet" media="screen,projection">
+  <link href="css/layouts/page-center.css" type="text/css" rel="stylesheet" media="screen,projection">
+
+  <!-- INCLUDED PLUGIN CSS ON THIS PAGE -->
+  <link href="js/plugins/prism/prism.css" type="text/css" rel="stylesheet" media="screen,projection">
+  <link href="js/plugins/perfect-scrollbar/perfect-scrollbar.css" type="text/css" rel="stylesheet" media="screen,projection">
+  
+</head>
+
+<body ng-class="{'blue-gradient':(!user.isLogedIn), 'blue':user.isLogedIn}">
+
+    <div class="row" ng-show="showLoader">
+        <div class="col s12 center">
+            <div class="preloader-wrapper big">
+              <div class="spinner-layer spinner-blue">
+                <div class="circle-clipper left">
+                  <div class="circle"></div>
+                </div>
+                <div class="gap-patch">
+                  <div class="circle"></div>
+                </div>
+                <div class="circle-clipper right">
+                  <div class="circle"></div>
+                </div>
+              </div>
+
+              <div class="spinner-layer spinner-red">
+                <div class="circle-clipper left">
+                  <div class="circle"></div>
+                </div>
+                <div class="gap-patch">
+                  <div class="circle"></div>
+                </div>
+                <div class="circle-clipper right">
+                  <div class="circle"></div>
+                </div>
+              </div>
+
+              <div class="spinner-layer spinner-yellow">
+                <div class="circle-clipper left">
+                  <div class="circle"></div>
+                </div>
+                <div class="gap-patch">
+                  <div class="circle"></div>
+                </div>
+                <div class="circle-clipper right">
+                  <div class="circle"></div>
+                </div>
+              </div>
+
+              <div class="spinner-layer spinner-green">
+                <div class="circle-clipper left">
+                  <div class="circle"></div>
+                </div>
+                <div class="gap-patch">
+                  <div class="circle"></div>
+                </div>
+                <div class="circle-clipper right">
+                  <div class="circle"></div>
+                </div>
+              </div>
+          </div>
+        </div>    
+    </div>
+
+    <!-- Signed out UI -->
+    <section id="login-page" class="row ng-cloak" ng-show="!user.isLogedIn && !showLoader">
+      <div class="col s12">
+        <form class="login-form">      
+          <div class="row">
+            <div class="input-field col s12 center">
+              <img src="images/logo.jpg" alt="" class="circle responsive-img valign profile-image-login">      
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-field col s12">
+              <a ng-click="login()" href="#" class="btn login-button z-depth-1 waves-effect waves-light col s12"><span class="mdi-action-account-circle"></span>Sign in with Google</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+    <!-- End Signed out UI -->
+
+    <!-- Signed in UI -->
+    <section id="content" class="ng-cloak" ng-show="user.isLogedIn && !showLoader">
+      <div class="container">
+          <div id="profile-page" class="section">
+            <div id="profile-page-header" class="card">
+                <div class="card-image waves-effect waves-block waves-light">
+                    <img class="activator" src="images/user-profile-bg.jpg" alt="user background">                    
+                </div>
+                <figure class="card-profile-image">
+                    <img ng-src="{{ user.photoURL }}" alt="profile image" class="circle z-depth-2 responsive-img activator">
+                </figure>
+                <div class="card-content">
+                  <div class="row">                    
+                    <div class="col s3 offset-s2">                        
+                        <h4 class="card-title grey-text text-darken-4">{{ user.displayName }}</h4>
+                        <p class="medium-small grey-text">Administrator</p>                        
+                    </div>
+                    <div class="col s2 center-align">
+                        <h4 class="card-title grey-text text-darken-4">10+</h4>
+                        <p class="medium-small grey-text">Card Scans (Today)</p>                        
+                    </div>
+                    <div class="col s2 center-align">
+                        <h4 class="card-title grey-text text-darken-4">6</h4>
+                        <p class="medium-small grey-text">Successfull Scans (Today)</p>                        
+                    </div>                    
+                    <div class="col s2 center-align">
+                        <h4 class="card-title grey-text text-darken-4">15</h4>
+                        <p class="medium-small grey-text">Rejected Scans (Today)</p>                        
+                    </div>                    
+                    <div class="col s1 right-align">
+                      <a ng-click="auth.$signOut()" class="btn-floating activator waves-effect waves-light darken-2 right">
+                          <i class="mdi-action-exit-to-app"></i>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+            </div>
+          </div>
+          <div id="profile-page-wall" class="section">
+            <!-- profile-page-wall-share -->
+            <div id="profile-page-wall-share" class="row">
+              <div class="col s12">
+                <ul class="tabs tab-profile z-depth-1 light-blue">
+                  <li class="tab col s3"><a class="white-text waves-effect waves-light" href="#recentActivity"><i class="mdi-action-explore"></i> Recent Activity</a>
+                  </li>
+                  <li class="tab col s3"><a class="white-text waves-effect waves-light" href="#registerUser"><i class="mdi-social-person-add"></i> Add Employee</a>
+                  </li>
+                  <li class="tab col s3"><a class="white-text waves-effect waves-light" href="#accessLogs"><i class="mdi-action-trending-up"></i> Logs</a>
+                  </li>                      
+                </ul>
+                <!-- recentActivity-->
+                <div id="recentActivity" class="tab-content col s12  grey lighten-4">
+                  <div class="row">
+                    <div class="col s2">
+                      <img src="images/avatar.jpg" alt="" class="circle responsive-img valign profile-image-post">
+                    </div>
+                    <div class="input-field col s10">
+                      <textarea id="textarea" row="2" class="materialize-textarea"></textarea>
+                      <label for="textarea" class="">What's on your mind?</label>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col s12 m6 share-icons">
+                      <a href="#"><i class="mdi-image-camera-alt"></i></a>
+                      <a href="#"><i class="mdi-action-account-circle"></i></a>
+                      <a href="#"><i class="mdi-hardware-keyboard-alt"></i></a>
+                      <a href="#"><i class="mdi-communication-location-on"></i></a>
+                    </div>
+                    <div class="col s12 m6 right-align">
+                        <!-- Dropdown Trigger -->
+                        <a class="dropdown-button btn" href="#" data-activates="profliePost"><i class="mdi-action-language"></i> Public</a><ul id="profliePost" class="dropdown-content">
+                          <li><a href="#!"><i class="mdi-action-language"></i> Public</a></li>
+                          <li><a href="#!"><i class="mdi-action-face-unlock"></i> Friends</a></li>                              
+                          <li><a href="#!"><i class="mdi-action-lock-outline"></i> Only Me</a></li>
+                        </ul>
+
+                        <!-- Dropdown Structure -->
+                        
+
+                        <a class="waves-effect waves-light btn"><i class="mdi-maps-rate-review left"></i>Post</a>
+                    </div>
+                  </div>
+                </div>
+                <!-- registerUser -->
+                <div id="registerUser" class="tab-content col s12  grey lighten-4">
+                    <div id="login-page" class="row">
+                      <div class="col s6 offset-s3 z-depth-4 card-panel">
+                        <form class="" ng-submit="addNewUser()">
+                          <div class="row">
+                            <div class="input-field col s12 center">
+                              <h4>Register</h4>
+                              <p class="center">Add new Member now</p>
+                            </div>
+                          </div>
+                          <div class="row margin">
+                            <div class="input-field col s12">
+                              <i class="mdi-social-person-outline prefix"></i>
+                              <input id="username" ng-model="formData.fullname" type="text">
+                              <label for="username" class="center-align">Fullname</label>
+                            </div>
+                          </div>
+                          <div class="row margin">
+                            <div class="input-field col s12">
+                              <i class="mdi-communication-email prefix"></i>
+                              <input id="email" type="email" ng-model="formData.email">
+                              <label for="email" class="center-align">Email</label>
+                            </div>
+                          </div>
+                          <div class="row margin">
+                            <div class="input-field col s12">
+                              <i class="mdi-action-credit-card prefix"></i>
+                              <input id="card-number" ng-model="formData.cardNumber" type="text" placeholder="Please place card on scanner" disabled>
+                              <label for="card-number" id="card-number-label">Card Number</label>
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="input-field col s12">
+                              <button type="submit" class="btn waves-effect waves-light col s12">Save</button>
+                            </div>
+                            <br><br><br>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                </div>
+                <!-- Access Logs -->
+                <div id="accessLogs" class="tab-content col s12  grey lighten-4">
+                    <div id="login-page" class="row">
+                      <div class="col s6 offset-s3 z-depth-4 card-panel">
+                        <form class="">
+                          <div class="row">
+                            <div class="input-field col s12 center">
+                              <h4>Register</h4>
+                              <p class="center">Add new Member now</p>
+                            </div>
+                          </div>
+                          <div class="row margin">
+                            <div class="input-field col s12">
+                              <i class="mdi-social-person-outline prefix"></i>
+                              <input id="username" ng-model="fullname" type="text">
+                              <label for="username" class="center-align">Fullname</label>
+                            </div>
+                          </div>
+                          <div class="row margin">
+                            <div class="input-field col s12">
+                              <i class="mdi-communication-email prefix"></i>
+                              <input id="email" type="email" ng-model="email">
+                              <label for="email" class="center-align">Email</label>
+                            </div>
+                          </div>
+                          <div class="row margin">
+                            <div class="input-field col s12">
+                              <i class="mdi-action-credit-card prefix"></i>
+                              <input id="card-number" ng-model="cardNumber" type="text" placeholder="Please place card on scanner" disabled>
+                              <label for="card-number" id="card-number-label">Card Number</label>
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="input-field col s12">
+                              <a href="#" class="btn waves-effect waves-light col s12">Save</a>
+                            </div>
+                            <br><br><br>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                </div>
+              </div>
+            </div>
+            <!--/ profile-page-wall-share -->
+
+          </div>
+      </div>
+    </section>
+    <!-- End Signed in UI -->
+    
+    
+    
+    <!-- Scripts -->
+
+    <!-- jQuery Library -->
+    <script type="text/javascript" src="js/plugins/jquery-1.11.2.min.js"></script>
+    <!--materialize js-->
+    <script type="text/javascript" src="js/materialize.js"></script>
+    <!--prism-->
+    <script type="text/javascript" src="js/plugins/prism/prism.js"></script>
+    <!--scrollbar-->
+    <script type="text/javascript" src="js/plugins/perfect-scrollbar/perfect-scrollbar.min.js"></script>
+
+    <!--plugins.js - Some Specific JS codes for Plugin Settings-->
+    <script type="text/javascript" src="js/plugins.js"></script>
+    <!--custom-script.js - Add your own theme custom JS-->
+    <script type="text/javascript" src="js/custom-script.js"></script>
+
+    <!-- Angular -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular.min.js"></script>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/3.6.1/firebase.js"></script>
+
+    <!-- AngularFire -->
+    <script src="https://cdn.firebase.com/libs/angularfire/2.0.1/angularfire.min.js"></script>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Initialize Firebase
+        var config = {
+            apiKey: "AIzaSyASDq_qnfxkXaTGrIwvHd_U8Na4PyderOs",
+            authDomain: "arduino-rfid-access-control.firebaseapp.com",
+            databaseURL: "https://arduino-rfid-access-control.firebaseio.com",
+            storageBucket: "arduino-rfid-access-control.appspot.com",
+            messagingSenderId: "786533033968"
+        };
+        firebase.initializeApp(config);
+
+        var app = angular.module("rfidCardsApp", ["firebase"]);
+        app.controller("RfidCardsController", function($scope, $firebaseAuth, $firebaseObject) {
+            $scope.showLoader = true;
+            $scope.auth = $firebaseAuth();
+            $scope.users = [];
+
+            $scope.usersRef = firebase.database().ref('/users');
+            $scope.accessRef = firebase.database().ref('/access');
+
+            $scope.user = {
+              photoURL: 'images/profile-placeholder.png',
+              displayName: 'Unknown',
+              email: 'email@example.com',
+              isLogedIn: false
+            };
+
+            $scope.formData = {};
+
+            // login with Google
+            $scope.login = function() {
+                $scope.auth.$signInWithPopup("google").then(function(firebaseUser) {
+                    console.log("Signed in as:", firebaseUser);
+                }).catch(function(error) {
+                    console.log("Authentication failed:", error);
+                });
+            };
+
+            $scope.auth.$onAuthStateChanged(function(firebaseUser) {
+              $scope.showLoader = false;
+              if (firebaseUser) {
+                console.log(firebaseUser);
+                $scope.loadUser(firebaseUser.photoURL, firebaseUser.displayName, firebaseUser.email, true);
+                $scope.updateUser(firebaseUser.photoURL, firebaseUser.displayName, firebaseUser.email, firebaseUser.uid);
+              } else {
+                // Default to nothing
+                $scope.loadUser("images/profile-placeholder.png", null, null, false);
+              }
+            });
+
+            $scope.addNewUser = function() {
+                console.log($scope.formData.fullname);
+                console.log($scope.formData.email);
+                console.log($scope.formData.cardNumber);
+                
+                var usersRef = firebase.database().ref('/users');
+                var userRef = usersRef.push();
+                var newMember = {
+                  fullname  : $scope.formData.fullname,
+                  email     :$scope.formData.email,
+                  cardNumber:'24949484850546648695254513',
+                  isAdmin   :false,
+                  lastAccessDate:null
+                };
+
+                userRef.set(newMember).then(function() {
+                    console.log('Synchronization succeeded');
+                  })
+                  .catch(function(error) {
+                    console.log('Synchronization failed', error);
+                  });
+            }
+
+            // Update User information on UI
+            $scope.loadUser = function (photoURL, displayName, email, authenticated) {
+              $scope.user = {
+                photoURL: photoURL,
+                displayName: displayName,
+                email: email,
+                isLogedIn: authenticated
+              };
+            }
+
+            // Show all the users in the system, except for admins
+            $scope.loadUser = function (photoURL, displayName, email, authenticated) {
+              $scope.user = {
+                photoURL: photoURL,
+                displayName: displayName,
+                email: email,
+                isLogedIn: authenticated
+              };
+            }
+
+            // Update User information on Firebase DB
+            $scope.updateUser = function (photoURL, displayName, email, userKey) {
+
+              var userRef       = firebase.database().ref('/users/'+userKey);
+              var user          = $firebaseObject($scope.userRef);
+              user.displayName  = displayName;
+              user.email        = email;
+              user.photoURL     = photoURL;
+              user.isAdmin      = true;
+              
+              user.$save().then(function(ref) {
+                ref.key === user.$id; // true
+                console.log("Successfully updated user");
+              }, function(error) {
+                console.log("Error:", error);
+              });
+            }
+
+            var iosocket;
+
+            $scope.initSocketIO = function () {
+                iosocket = io.connect();
+                iosocket.on('onconnection', function(value) {
+                    console.log("Arduino Connected: ",value);
+
+                    // recieve changed values by other client from server
+                    iosocket.on('readCard', function (receivedData) {
+                        $("#card-number").val(receivedData.cardID);
+                        $scope.formData.cardNumber = receivedData.cardID;
+
+                        console.log($scope.formData.fullname);
+                        console.log($scope.formData.email);
+                        console.log($scope.formData.cardNumber);
+                    });
+                });
+            }
+
+            $scope.initSocketIO();
+        
+        });
+    </script>
+</body>
+
+</html>

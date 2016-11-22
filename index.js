@@ -21,7 +21,7 @@ var	portConfig = {
 	};
 
 // Empty value to send when a user connects to the socket
-var sendData = "";
+var sendData = "Scanner Connected, place card on scanner";
 
 /**
  *  Define the sample application.
@@ -41,7 +41,7 @@ var SampleApp = function() {
     self.setupVariables = function() {
         //  Set the environment variables we need.
         self.ipaddress = process.env.IP;
-        self.port      = process.env.PORT || 5000;
+        self.port      = process.env.PORT || 80;
 
         if (typeof self.ipaddress === "undefined") {
             //  Log errors on OpenShift but continue w/ 127.0.0.1 - this
@@ -174,9 +174,21 @@ var SampleApp = function() {
         //Application settings
         self.app.set('views', './views');
         self.app.set('view engine', 'ejs');
-        
+
         self.app.get('/', function (req, res) {
-            res.render('pages/index');
+            res.render('pages/home');
+        });                
+
+        self.app.get('/splash', function (req, res) {
+            res.render('pages/splash');
+        });
+
+        self.app.get('/register', function (req, res) {
+            res.render('pages/register');
+        });
+
+        self.app.get('/login', function (req, res) {
+            res.render('pages/login');
         });
 
         self.app.post('/save-user', function (req, res) {
@@ -205,9 +217,10 @@ var SampleApp = function() {
         self.io.on('connection', function (socket) {
             console.log("user connected");
             
-            socket.emit('onconnection', {cardID:sendData});
+            socket.emit('onconnection', {connectInfo:sendData});
 
             self.io.on('update', function(data) {
+                console.log(data);
                 socket.emit('readCard',{cardID:data});
             });
         });
@@ -304,7 +317,6 @@ var SampleApp = function() {
                         portName = usbPort.comName; 
                         return;
                     }
-                    console.log(usbPort)
                 });
 
                 return resolve(portName);
@@ -320,7 +332,7 @@ var SampleApp = function() {
             if(portName == null)
                 return console.log("Please check that you have connected your Arduino Board via USB");
                 // Open up serial com port
-                self.myPort = new SerialPort(portName, { autoOpen: false });
+                self.myPort = new SerialPort(portName, portConfig);
                 self.initSerialListeners();
         }, function(err){
             console.log(err);
