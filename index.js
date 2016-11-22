@@ -99,7 +99,7 @@ var SampleApp = function() {
     self.createRoutes = function() {
         self.routes = { };
 
-        self.routes['/v2/test'] = function(req, res) {
+        self.routes['/v1/test'] = function(req, res) {
             res.setHeader('Content-Type', 'application/json');
             response = {
                 domain: 'my-arduino-node-js',
@@ -108,15 +108,7 @@ var SampleApp = function() {
                 result: 'ping success'
             };
             res.end(JSON.stringify(response));
-        };
-
-        self.routes['/v2/read-card'] = function(req, res) {    
-            res.setHeader('Content-Type', 'application/json');
-            response = {
-                result: 'hey'
-            };
-            res.end(JSON.stringify(response));
-        };        
+        };       
 
         self.routes['/v2/access'] = function(req, res) {
             res.setHeader('Content-Type', 'application/json');
@@ -187,62 +179,31 @@ var SampleApp = function() {
     self.checkUserAccess = function(response) {
         return new Promise(function(resolve, reject){
             var ref = firebase.database().ref('/users');
-            var found = false;
-            var hasLogged = false;
 
-            var query = ref.orderByKey();
-            query.once("value")
-                .then(function(snapshot) {
-                    snapshot.forEach(function(childSnapshot) {
-                        if(!found) {
-                            // Get the user object
-                            var userKey = childSnapshot.key;
-                            var userData = childSnapshot.val();
+            // Find user by their scanned card number
+            ref.startAt(response.tagID)
+                .endAt(response.tagID)
+                .once('value', function(snap) {
+                    var userKey = snap.key;
+                    var userData = snap.val();
+                    // Grant access, and create an access log
+                    var logsRef = firebase.database().ref('/logs');
+                    var logRef = logsRef.push();
+                    
+                    // @TODO: Check card expiry date before you can allow access
 
-                            // Get the device for this user
-                            var deviceData = childSnapshot.child("device");
-
-                            // Check the devices' access list for a user cellphone
-                            deviceData.forEach(function(deviceChildSnapshot) {
-                                var device = deviceChildSnapshot.val();
-                                var deviceKey = deviceChildSnapshot.key;
-                                
-                                // Loop trough the 
-                                var accessData = deviceChildSnapshot.child("access");
-
-                                accessData.forEach(function(accessChildSnapshot) {
-                                    var access = accessChildSnapshot.val();
-                                    if(access.cellphone === response.cellphone) {
-                                        //Grant access since they were added
-                                        found = true;
-                                        console.log('User is in access list');
-                                        //Create a new access log
-                                        var logsRef = firebase.database().ref('/users/'+ userKey +'/device/'+ deviceKey +'/logs');
-                                        var logRef = logsRef.push();
-
-                                        logRef.update({ 
-                                            user: access.fullname,
-                                            cellphone: access.cellphone,
-                                            createdAt: firebase.database.ServerValue.TIMESTAMP
-                                        });
-
-                                        //Update the status of the door
-                                        var deviceRef = firebase.database().ref('/users/'+ userKey +'/device/'+ deviceKey);
-                                        deviceRef.update({
-                                            opened: true,
-                                            lastOpenTime: firebase.database.ServerValue.TIMESTAMP
-                                        });
-                                        //cancel further iterations
-                                        resolve({result:'ok'});
-                                        return found;
-                                    }
-                                });
-                            });
-                        }
+                    logRef.update({ 
+                        user: userData.fullname,
+                        userID: userKey,
+                        createdAt: firebase.database.ServerValue.TIMESTAMP
                     });
 
-                    if(!found) resolve({result:'fail'});
-            });
+                    console.log('found user matching tagID', snap.fullname());
+                    resolve({result:'ok'});
+                }).catch(function(err) {
+                    console.log('unable to find user matching the query');
+                    resolve({result:'fail'});
+                });
         });
     }
 
