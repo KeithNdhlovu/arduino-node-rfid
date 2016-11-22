@@ -9,19 +9,6 @@ var io          = require('socket.io');
 
 var serveStatic = require('serve-static');
 
-// serial port initialization:
-var serialport = require('serialport'),			// include the serialport library
-	SerialPort  = serialport.SerialPort,			// make a local instance of serial
-	portName = '/dev/cu.usbmodem1421',								// get the port name from the command line
-	portConfig = {
-		baudRate: 9600,
-		// call myPort.on('data') when a newline is received:
-		parser: serialport.parsers.readline('\n')
-	};
-
-// Empty value to send when a user connects to the socket
-var sendData = "";
-
 /**
  *  Define the sample application.
  */
@@ -166,9 +153,6 @@ var SampleApp = function() {
         self.initializeFirebase();
         self.createRoutes();
         self.app    = express();
-
-        self.accesSerialPort();
-        self.initSocketIO();
         
         //Application settings
         self.app.set('views', './views');
@@ -186,33 +170,13 @@ var SampleApp = function() {
             self.app.get(r, self.routes[r]);
         }
     };
-    
-    /**
-     * 
-     * Initialize socket IO
-     */
-    self.initSocketIO = function() {
-        
-        self.server = Server.createServer(self.app);
-        self.io = io.listen(self.server);
-
-        self.io.on('connection', function (socket) {
-            console.log("user connected");
-            
-            socket.emit('onconnection', {cardID:sendData});
-
-            self.io.on('update', function(data) {
-                socket.emit('readCard',{cardID:data});
-            });
-        });
-    }
 
     /**
      *  Initialize firebase
      */
     self.initializeFirebase = function() {
         firebase.initializeApp({
-          databaseURL: 'https://arduino-gprs.firebaseio.com/',
+          databaseURL: 'https://arduino-rfid-access-control.firebaseio.com/',
           serviceAccount: 'firebase-details.json'
         });
     }
@@ -280,37 +244,6 @@ var SampleApp = function() {
                     if(!found) resolve({result:'fail'});
             });
         });
-    }
-
-    /**
-     * Open serial port to read incoming data from RFID Reader
-     *  
-     */
-    self.accesSerialPort = function () {
-        // Open up serial com port
-        self.myPort = new SerialPort(portName, portConfig); // open the serial port:        
-        self.myPort.on('open', openPort);		// called when the serial port opens
-        self.myPort.on('close', closePort);		// called when the serial port closes
-        self.myPort.on('error', serialError);	// called when there's an error with the serial port
-        self.myPort.on('data', listen);			// called when there's new incoming serial data
-
-        function openPort() {
-            console.log('port open');
-            console.log('baud rate: ' + self.myPort.options.baudRate);
-        }
-
-        function closePort() {
-            console.log('port closed');
-        }
-
-        function serialError(error) {
-            console.log('there was an error with the serial port: ' + error);
-            self.myPort.close();
-        }
-
-        function listen(data) {
-            self.io.emit('update', data);
-        }
     }
 
     /**
