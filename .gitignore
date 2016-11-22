@@ -4,3 +4,5 @@ jspm_packages
 
 # Optional npm cache directory
 .npmnpm-debug.log
+
+*.DS_Store
