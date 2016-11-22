@@ -178,28 +178,34 @@ var SampleApp = function() {
             var ref = firebase.database().ref('/users');
 
             // Find user by their scanned card number
-            ref.startAt(response.tagID)
-                .endAt(response.tagID)
-                .once('value', function(snap) {
-                    var userKey = snap.key;
-                    var userData = snap.val();
-                    // Grant access, and create an access log
-                    var logsRef = firebase.database().ref('/logs');
-                    var logRef = logsRef.push();
-                    
-                    // @TODO: Check card expiry date before you can allow access
+            ref.orderByChild("cardNumber")
+                .equalTo(response.tagID)
+                .on('value', function(snap) {
+                    // if the results are empty, we return failiure
+                    if(snap.val() == null)  return resolve({result:'fail'});
 
-                    logRef.update({ 
-                        user: userData.fullname,
-                        userID: userKey,
-                        createdAt: firebase.database.ServerValue.TIMESTAMP
+                    // Continue normal if, all is okay
+                    snap.forEach(function(userSnapshot) { 
+                        var userKey = userSnapshot.key;
+                        var userData = userSnapshot.val();
+
+                        // Grant access, and create an access log
+                        var logsRef = firebase.database().ref('/logs');
+                        var logRef = logsRef.push();
+                        
+                        // @TODO: Check card expiry date before you can allow access
+
+                        logRef.update({ 
+                            user: userData.fullname,
+                            userID: userKey,
+                            createdAt: firebase.database.ServerValue.TIMESTAMP
+                        });
+
+                        return true;
                     });
+                        
 
-                    console.log('found user matching tagID', snap.fullname());
                     resolve({result:'ok'});
-                }).catch(function(err) {
-                    console.log('unable to find user matching the query');
-                    resolve({result:'fail'});
                 });
         });
     }
