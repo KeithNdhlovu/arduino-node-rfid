@@ -3,6 +3,7 @@ var express     = require('express');
 var fs          = require('fs');
 var firebase    = require('firebase');
 var Promise     = require('promise');
+var NodeGeocoder= require('node-geocoder');
 
 var serveStatic = require('serve-static');
 
@@ -13,6 +14,14 @@ var SampleApp = function() {
 
     //  Scope.
     var self = this;
+
+    self.options = {
+        provider: 'google',
+        // Optional depending on the providers 
+        httpAdapter: 'https',
+        apiKey: 'AIzaSyBtDR5p9DzzNBmMkBuavS6iOkoWndb99zs',
+        formatter: null
+    };
 
     /*  ================================================================  */
     /*  Helper functions.                                                 */
@@ -131,6 +140,35 @@ var SampleApp = function() {
             });
         };
 
+        self.routes['/v1/track'] = function (req, res) {
+
+            if (typeof req.query.longitude === "undefined" || 
+               typeof req.query.latitude  === "undefined" ||
+               typeof req.query.cellphone === "undefined") {
+                
+                response = {
+                    result: 'fail'
+                };
+                res.end(JSON.stringify(response));
+                return;
+            }
+           
+            // Prepare output in JSON format
+            response = {
+               latitude:req.query.latitude,
+               longitude:req.query.longitude,
+               cellphone:req.query.cellphone
+            };
+
+            self.createNewLocation(response).then(function(success){
+                res.end(JSON.stringify(success));
+                return;
+            }, function(err){
+                res.end(JSON.stringify(err));
+                return;
+            });
+        };
+
     };
 
 
@@ -168,6 +206,15 @@ var SampleApp = function() {
           databaseURL: 'https://arduino-rfid-access-control.firebaseio.com/',
           serviceAccount: 'firebase-details.json'
         });
+
+        self.otherApp = firebase.initializeApp({
+          databaseURL: 'https://arduino-item-locator.firebaseio.com',
+          serviceAccount: 'other-firebase-details.json'
+        }, "other");
+
+
+        console.log(firebase.app().name);  // "[DEFAULT]"
+        console.log(self.otherApp.name);   // "other"
     }
 
     /**
@@ -207,6 +254,83 @@ var SampleApp = function() {
 
                     resolve({result:'ok'});
                 });
+        });
+    }
+
+    /**
+     *  Check if a user request is allowed, by checking the user access list of a device
+     */
+    self.createNewLocation = function(response) {
+        
+        return new Promise(function(resolve, reject) {
+
+            var geocoder = NodeGeocoder(self.options);
+
+            var ref = self.otherApp.database().ref('/users');
+            var escape = false;
+            
+            //check which device is linked to cellphone
+            var query = ref.orderByKey();
+            query.once("value").then(function(snapshot) {
+
+                snapshot.forEach(function(childSnapshot) {
+                    var userKey = childSnapshot.key;
+                    var userData = childSnapshot.val();
+                    var deviceData = childSnapshot.child("device");
+
+                    deviceData.forEach(function(deviceChildSnapshot) {
+                        
+                        var device = deviceChildSnapshot.val();
+                        var deviceKey = deviceChildSnapshot.key;
+
+                        console.log(device.cellphone);
+                        console.log(response.cellphone);
+
+                        if(device.cellphone === response.cellphone) {
+                            //Save the new location data
+                            var locationsRef = self.otherApp.database().ref('/users/'+ userKey +'/device/'+ deviceKey +'/locations');
+                            var locationRef = locationsRef.push();
+
+
+                            console.log(response);
+                            // Using callback 
+                            geocoder.reverse({lat:response.latitude, lon:response.longitude}, function(err, res) {
+                                
+                                if(err) return reject(err);
+                                
+                                var address = res[0];
+                                
+                                //Using data from geocoder since its more accurate
+                                locationRef.update({ 
+                                    latitude: address.latitude, 
+                                    longitude: address.longitude,
+                                    formattedAddress: address.formattedAddress,
+                                    createdAt: firebase.database.ServerValue.TIMESTAMP
+                                })
+                                .then(function() {
+                                    return ref.once("value");
+                                });
+                            });
+
+                            //Add a listener to catch error messages and success messages
+                            locationsRef.on('child_added', function(dataSnapshot) {
+                                console.log('New Location data added');
+                            }, function(error) {
+                                console.log('Failed to add "child_added" listener /locations node:', error);
+                            });
+                            escape = true;
+                            
+                            resolve('ok');
+                            //cancel further iterations
+                            return escape;
+                        }
+                    });
+
+                    reject('fail');
+                    return escape;
+                });
+            });
+
         });
     }
 

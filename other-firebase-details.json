@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "arduino-item-locator",
+  "private_key_id": "0be5f61a35e4f1a018fe30f60445bfb48e396b6f",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDGS46BLV+1MB0N\n/YgIi4fbq+zy7tAPnnfdLLHSkOLG40l+w4Lh8nRl01EV5IrzfS7D82UwG7gNuUgI\nFvvchnWe4ewfpCjUXFStaagnoODMy0mfkYaPXKr3tX6dwhLQb7ggRX8X8diWnUG6\nx53fPkk34vYvTie1WsZLMVUygWZguA73CwtXrOwM1p0vXK+/oJeaL9WLs8z7ePLn\nIryvjYk18Nnopjr2g75nliYAYVXm+qcvnlyzDzgl5lXCDe/ZsHjUIvn3UY4dIO4H\nCzWbBKgATMoG5NoHlrJAPsUCk0yZHu3FG/i06Ij9z0BYACTQxw0v6AcafCF+qKYo\nsXTrw4/fAgMBAAECggEBAJmRvGx4em21NFs4ZVjQzsemr5w4rTPbc1L8IT9E7AxB\nzBJ7Ueqwvcp6TIra8229HjGtV0lZvkIKoyl4u1e/XmpM53Rdyy0j0IR4lj0Sj+aq\n7XrB1mdCyjmK+uMsgSuhygRcLiCaMTX71gLUQ4S4FTZN9IEQUxpVkcp8C1JQ+rud\nktseXUKWJU27NdBcDSHctmxt9JbVpuutfxl7Cqw36Q7+yFUl9Dz8072erF2hY66+\ntpiE+aIEQSsgP500BRUBy0en+r+d+CP8Fqv2TXd6MNK5FQmHQpQAb1k6V+qa3CGZ\nSqFHDEONrzZiNQ7itrSZU6J41TlGlLAesOEfr2/hdNECgYEA6rMjHAkb1/VkT7mq\nZLZDvl2FoYtR0O4xS2PZxgZT1Ox/fUUgPVOqjaca/g6cUt7ltiyaghZ37wYHeHz2\n8NKyZj9bAFTis9SHHeAfOqs/0JFHQuXwYoq6+iZt/XVahe+i1i43AYmzS637WESI\nsbdbD12oGTwYVXC35Zj01/7dFscCgYEA2EqeRINAqkXBpPpBFjPrF+0WGITIQ8dU\ncQyxjot5Uh6AGSrtx+ocyhEyDkZYjC2KVxFPu5Ege24IZtK6Sf0bb7VVMMK5n63y\nDT4kzUvHw/RufHz6cChfuYZgKPLLtFC3Uh7MFN5w5jG+g25KydoLvR6098oVlmeX\nvlu2Nu5bxikCgYEAzYYdYrmfRlg/hYlC63qojBV9pd9IwDs1s5024TA9TSHk6qAU\nAWA45F7HRl8pCXDjm8ona2+dixSuihZ0cKMxUlR8riendm7P+5t9/XRlJ5Fw4+ZT\nwRdXcSMiAmg34z3cTM6foJsjBUzP45XwViAIf8Y2JBL6BCf3AfoVvugSV5UCgYEA\noHQqmRTtoeOB1ku4gSoe228Mlz/Z+T4kTIFoLyEU7XCnAwSvxUDN/rFm+uQAyGz4\nVcMH7VOqTya/oNfvTvgvpF1XR4cNgYHfMSfK0WnIVnw8gqmMeCvbZ5xiNb54k9nV\nRVyHdWvXQU3h0Uq+vKO/VZs0ESafgSZ0kckjkfidqJECgYBBMuJt6Ua1c+02KP08\nXWmc95udy1IDkLRN/wFEy/Zpy1Sak6F1iwPqxV/pUM0SDWjH23YWgRFgQsUgkic8\nRuYYbDsPLxoklG+hLtalOOIbCQlxI+e6N0u7/rGDP8SFGggMEsmGdA4Wuyi4ssuV\naybTza5K9ELhlTilIMSNl1kKdw==\n-----END PRIVATE KEY-----\n",
+  "client_email": "keithsonny@arduino-item-locator.iam.gserviceaccount.com",
+  "client_id": "110489495499834263097",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/keithsonny%40arduino-item-locator.iam.gserviceaccount.com"
+}
